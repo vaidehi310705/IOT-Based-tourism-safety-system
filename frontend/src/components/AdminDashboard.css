@@ -1,0 +1,127 @@
+/* Reset everything */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow: hidden;
+  background: #0220516a; /* dark blue-gray background */
+  color: #f1f5f9; /* light text */
+}
+
+/* Dashboard flex layout */
+.dashboard {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Left column */
+.left-column {
+  width: 300px;
+  margin: 20px 0 20px 20px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  flex-shrink: 0;
+  height: 100%;
+}
+
+/* Left boxes with gradient and shadow */
+.left-column .box {
+  padding: 20px;
+  border-radius: 12px;
+  min-height: 270px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #f1f5f9;
+  font-weight: 600;
+  background: linear-gradient(135deg, #001275b3, #1256ea6c); /* bright blue gradient */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.left-column .box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.5);
+}
+
+/* Center map */
+.center-map {
+  flex: 1;
+  margin:400px 20px;
+  min-height: 0;
+  height: 500px;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #334155; /* darker map background */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+
+/* Right column */
+.right-column {
+  width: 300px;
+  background-color: #475569; /* medium dark blue-gray */
+  padding: 15px;
+  max-height: 880px; /* reduced height */
+  overflow-y: auto;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 20px 20px 20px 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+
+/* Tourist list table */
+.right-column table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.right-column th,
+.right-column td {
+  border: 1px solid #64748b; /* subtle border */
+  padding: 8px;
+  text-align: center;
+}
+
+.right-column th {
+  background-color: #3b82f6; /* blue header */
+  color: #f1f5f9;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Leaflet map container */
+.center-map .leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 12px;
+  box-shadow: inset 0 0 12px rgba(0,0,0,0.2);
+}
+
+/* Scrollbar styling for right column */
+.right-column::-webkit-scrollbar {
+  width: 8px;
+}
+
+.right-column::-webkit-scrollbar-track {
+  background: #475569;
+}
+
+.right-column::-webkit-scrollbar-thumb {
+  background-color: #2563eb;
+  border-radius: 4px;
+  border: 2px solid #475569;
+}

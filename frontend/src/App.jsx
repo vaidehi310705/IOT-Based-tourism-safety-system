@@ -1,10 +1,10 @@
 import React from "react";
-import TestConnection from "./TestConnection.jsx";
+import AdminDashboard from "./components/AdminDashboard.jsx";
 
 function App() {
   return (
     <div>
-      <TestConnection />
+       <AdminDashboard />
     </div>
   );
 }
