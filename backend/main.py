@@ -30,20 +30,79 @@ def get_locations():
 
 # Danger zones dataset
 zones = [
+
     {
-        "name": "Cliff Zone",
-        "lat": 19.0715,
-        "lng": 72.8725,
+        "name": "Tiger Point",
+        "lat": 18.6959,
+        "lng": 73.3950,
         "radius": 200,
-        "risk": "RED"
+        "risk": "RED",
+        "type": "Cliff Risk"
     },
+
     {
-        "name": "Water Zone",
-        "lat": 19.0725,
-        "lng": 72.8735,
+        "name": "Lion Point",
+        "lat": 18.6976,
+        "lng": 73.3925,
         "radius": 300,
-        "risk": "YELLOW"
+        "risk": "YELLOW",
+        "type": "Crowd / Cliff"
+    },
+
+    {
+        "name": "Bhushi Dam",
+        "lat": 18.7362,
+        "lng": 73.3940,
+        "radius": 250,
+        "risk": "RED",
+        "type": "Water Risk"
+    },
+
+    {
+        "name": "Rajmachi Fort",
+        "lat": 18.8276,
+        "lng": 73.3825,
+        "radius": 500,
+        "risk": "YELLOW",
+        "type": "Trekking Risk"
+    },
+
+    {
+        "name": "Karla Caves",
+        "lat": 18.7828,
+        "lng": 73.4710,
+        "radius": 200,
+        "risk": "YELLOW",
+        "type": "Steep Access Zone"
+    },
+
+    {
+        "name": "Dukes Nose",
+        "lat": 18.7507,
+        "lng": 73.3776,
+        "radius": 250,
+        "risk": "RED",
+        "type": "Cliff / Trek Risk"
+    },
+
+    {
+        "name": "Tigers Leap",
+        "lat": 18.6948,
+        "lng": 73.3967,
+        "radius": 200,
+        "risk": "RED",
+        "type": "Cliff Edge"
+    },
+
+    {
+        "name": "Lohagad Fort",
+        "lat": 18.7108,
+        "lng": 73.4786,
+        "radius": 400,
+        "risk": "YELLOW",
+        "type": "Trekking Risk"
     }
+
 ]
 
 # Haversine formula
