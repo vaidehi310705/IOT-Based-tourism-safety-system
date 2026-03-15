@@ -1,12 +1,10 @@
-import React from "react";
-import AdminDashboard from "./components/AdminDashboard.jsx";
+import AdminDashboard from "./pages/AdminDashboard";
+import "./index.css";
+import "leaflet/dist/leaflet.css";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
-  return (
-    <div>
-       <AdminDashboard />
-    </div>
-  );
+  return <AdminDashboard />;
 }
 
 export default App;
