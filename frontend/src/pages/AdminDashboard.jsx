@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ToastContainer, toast } from "react-toastify";
 
 import Header from "../components/Header";
@@ -20,7 +20,11 @@ const backendURL = "http://127.0.0.1:8000";
 
 export default function AdminDashboard() {
 
-const [tourists, setTourists] = useState({});
+const [tourists, setTourists] = useState({
+  T1: { lat: 19.34543, lng: 72.80580 },
+  T3: { lat: 18.75400, lng: 73.40630 },
+  T2: { lat: 18.75070, lng: 73.37760 },
+});
 const [zones, setZones] = useState([]);
 const [alerts, setAlerts] = useState([]);
 const [weather, setWeather] = useState(null);
@@ -32,6 +36,30 @@ useLiveLocation(setTourists, setPaths);
 useZones(setZones);
 useWeather(tourists, setWeather);
 useAlerts(setAlerts, setAlertMessages);
+
+const getRiskPriority = (touristId) => {
+  if (!alerts || !alerts[touristId]) return 3;
+
+  const tAlerts = alerts[touristId];
+
+  if (!Array.isArray(tAlerts)) return 3;
+
+  if (tAlerts.some(a => a.risk === "RED")) return 1;
+  if (tAlerts.some(a => a.risk === "YELLOW")) return 2;
+  return 3;
+};
+
+/*sorting*/
+const sortedTourists = useMemo(() => {
+  if (!tourists || Object.keys(tourists).length === 0) return {};
+
+  return Object.entries(tourists)
+    .sort((a, b) => getRiskPriority(a[0]) - getRiskPriority(b[0]))
+    .reduce((acc, [id, data]) => {
+      acc[id] = data;
+      return acc;
+    }, {});
+}, [tourists, alerts]);
 
   /* YOUR ORIGINAL LOGIC REMAINS EXACTLY SAME */
 
@@ -52,7 +80,7 @@ useAlerts(setAlerts, setAlertMessages);
 
         <MapView tourists={tourists} zones={zones} paths={paths} alerts={alerts} />
 
-        <TouristTable tourists={tourists} />
+        <TouristTable tourists={sortedTourists} />
 
       </div>
 

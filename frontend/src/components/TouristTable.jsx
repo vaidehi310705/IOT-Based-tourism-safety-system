@@ -1,7 +1,6 @@
 import useTourists from "../hooks/useTourists";
 
-export default function TouristTable() {
-  const tourists = useTourists(); // fetch all tourists automatically
+export default function TouristTable({ tourists }) {// fetch all tourists automatically
 
   return (
     <div className="col-span-3 bg-blue-900/60 backdrop-blur-xl rounded-3xl p-6 border border-blue-700 shadow-2xl">

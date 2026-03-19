@@ -30,7 +30,6 @@ def check_geofence(lat, lng):
             alerts.append({
                 "zone": zone["name"],
                 "risk": zone["risk"],
-                "type": zone["type"]
             })
 
     return alerts

@@ -1,39 +1,54 @@
 from fastapi import APIRouter
-from database.mongo import tourists_col, zones_col
-from services.geofence import calculate_distance
+from data.tourists import tourists
+from services.geofence import check_geofence 
 
 router = APIRouter()
+
+
+RISK_PRIORITY = {
+    "RED": 1,
+    "YELLOW": 2,
+    "GREEN": 3
+}
+
+@router.get("/priority-tourists")
+def get_priority_tourists():
+    result = []
+
+    for tourist_id, location in tourists.items():
+        alerts = check_geofence(location["lat"], location["lng"])
+        # Default priority
+        highest_risk = "GREEN"
+
+        if alerts:
+            risks = [a["risk"] for a in alerts]
+
+            if "RED" in risks:
+                highest_risk = "RED"
+            elif "YELLOW" in risks:
+                highest_risk = "YELLOW"
+
+        result.append({
+            "tourist_id": tourist_id,
+            "lat": location["lat"],
+            "lng": location["lng"],
+            "risk": highest_risk
+        })
+
+    # 🔥 SORT by priority
+    result.sort(key=lambda x: RISK_PRIORITY[x["risk"]])
+
+    return result
 
 @router.get("/alerts")
 def get_alerts():
 
-    results = {}
+    result = {}
 
-    tourists = list(tourists_col.find())
-    zones = list(zones_col.find())
+    for tourist_id, location in tourists.items():
 
-    for t in tourists:
+        alerts = check_geofence(location["lat"], location["lng"])
 
-        t_id = t["tourist_id"]
-        t_lat = t["lat"]
-        t_lng = t["lng"]
+        result[tourist_id] = alerts
 
-        alerts = []
-
-        for z in zones:
-
-            distance = calculate_distance(
-                t_lat, t_lng,
-                z["lat"], z["lng"]
-            )
-
-            if distance <= z.get("radius", 100):
-                alerts.append({
-                    "zone": z.get("name", ""),
-                    "risk": z.get("risk", "GREEN")
-                })
-
-        if alerts:
-            results[t_id] = alerts
-
-    return results
+    return result
