@@ -1,7 +1,7 @@
 # backend/data/zones.py
 zones = [
-    {"name": "home 1", "lat": 19.345621, "lng": 72.804927, "radius": 100, "risk": "RED"},
-    {"name": "home 2", "lat": 19.347880, "lng": 72.804212, "radius": 150, "risk": "YELLOW"},
+    {"name": "home 1", "lat": 19.345509, "lng": 72.805962, "radius": 100, "risk": "RED"},
+    {"name": "home 2", "lat": 19.347880, "lng": 72.804212, "radius": 150, "risk": "RED"},
     {"name": "VCET College", "lat": 19.383897, "lng": 72.828502, "radius": 400, "risk": "YELLOW"},
     {"name": "Lonavala Lake", "lat": 18.7600, "lng": 73.4200, "radius": 400, "risk": "YELLOW"},
     {"name": "Bhushi Dam", "lat": 18.7585, "lng": 73.4080, "radius": 400, "risk": "YELLOW"},
@@ -13,6 +13,7 @@ zones = [
     {"name": "Karla Caves", "lat": 18.7828, "lng": 73.4710, "radius": 200, "risk": "YELLOW"},
     {"name": "Dukes Nose", "lat": 18.7507, "lng": 73.3776, "radius": 250, "risk": "RED"},
     {"name": "Lohagad Fort", "lat": 18.7108, "lng": 73.4786, "radius": 400, "risk": "YELLOW"},
+    {"name": "Ben Atya", "lat": 19.13582, "lng": 72.81680, "radius": 200, "risk": "YELLOW"},
 ]
 
 # Insert zones only if collection is empty
