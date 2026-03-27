@@ -11,38 +11,32 @@ export default function useAlerts(setAlerts, setAlertMessages) {
 
     const fetchAlerts = async () => {
       try {
-        const res = await fetch(`${backendURL}/alerts`);
+        const res = await fetch(`${backendURL}/api/alerts/alerts`); // ✅ only this changed
         const data = await res.json();
 
         setAlerts(data);
 
-        const allMessages = [];   // ✅ for UI
+        const allMessages = [];
 
         Object.keys(data).forEach(id => {
           data[id].forEach(a => {
 
             const name = id === "ME" ? "You" : id;
             const message = `${name} entered ${a.risk} zone`;
-
             const alertKey = `${id}-${a.zone}`;
 
-            // ✅ ALWAYS add to UI
             allMessages.push(message);
 
-            // ✅ ONLY new → toast
             if (!shownAlerts.has(alertKey)) {
               shownAlerts.add(alertKey);
-
               toast.error(message, {
                 position: "top-right",
                 autoClose: 3000,
               });
             }
-
           });
         });
 
-        // ✅ update UI with ALL alerts
         setAlertMessages(allMessages);
 
       } catch (err) {
@@ -52,7 +46,6 @@ export default function useAlerts(setAlerts, setAlertMessages) {
 
     fetchAlerts();
     const interval = setInterval(fetchAlerts, 3000);
-
     return () => clearInterval(interval);
 
   }, [setAlerts, setAlertMessages]);

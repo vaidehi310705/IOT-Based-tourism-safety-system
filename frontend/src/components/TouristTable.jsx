@@ -1,7 +1,4 @@
-import useTourists from "../hooks/useTourists";
-
-export default function TouristTable({ tourists }) {// fetch all tourists automatically
-
+export default function TouristTable({ tourists }) {
   return (
     <div className="col-span-3 bg-blue-900/60 backdrop-blur-xl rounded-3xl p-6 border border-blue-700 shadow-2xl">
       <h3 className="text-xl font-semibold text-blue-200 mb-4">
@@ -21,10 +18,9 @@ export default function TouristTable({ tourists }) {// fetch all tourists automa
           {Object.keys(tourists).map((id) => {
             const t = tourists[id];
             if (!t) return null;
-
             return (
               <tr key={id} className="border-b border-blue-800">
-                <td className="p-2">{id === "ME" ? "You" : id}</td>
+                <td className="p-2">{id}</td>
                 <td className="p-2">{t.lat?.toFixed(5)}</td>
                 <td className="p-2">{t.lng?.toFixed(5)}</td>
               </tr>

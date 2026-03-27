@@ -26,7 +26,7 @@ const [tourists, setTourists] = useState({
   T2: { lat: 18.75070, lng: 73.37760 },
 });
 const [zones, setZones] = useState([]);
-const [alerts, setAlerts] = useState([]);
+const [alerts, setAlerts] = useState({});
 const [weather, setWeather] = useState(null);
 const [paths, setPaths] = useState({});
 const [alertMessages, setAlertMessages] = useState([]);
