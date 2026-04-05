@@ -1,4 +1,5 @@
 # backend/data/zones.py
+
 zones = [
     {"name": "home 1", "lat": 19.345509, "lng": 72.805962, "radius": 100, "risk": "RED"},
     {"name": "home 2", "lat": 19.347880, "lng": 72.804212, "radius": 150, "risk": "RED"},
@@ -15,10 +16,3 @@ zones = [
     {"name": "Lohagad Fort", "lat": 18.7108, "lng": 73.4786, "radius": 400, "risk": "YELLOW"},
     {"name": "Ben Atya", "lat": 19.13582, "lng": 72.81680, "radius": 200, "risk": "YELLOW"},
 ]
-
-# Insert zones only if collection is empty
-from database.mongo import zones_col
-
-if zones_col.count_documents({}) == 0:
-    zones_col.insert_many(zones)
-    print("Zones inserted into MongoDB ✅")

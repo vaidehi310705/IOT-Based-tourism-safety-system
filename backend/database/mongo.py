@@ -8,9 +8,10 @@ client = MongoClient(MONGO_URI)
 db = client["TouristSafety"]  # you can rename "tourist_db" to anything
 
 # Collections
+zones_col = db["zones"]  
+alerts_col = db["alerts"] 
 tourists_col = db["tourists"]
-zones_col = db["zones"]
-locations_col = db["locations"]  # if you have a collection for locations
-alerts_col = db["alerts"]        # if you have a collection for alerts
+locations_col = db["locations"]
+       # if you have a collection for alerts
 
 print("MongoDB Atlas connected ✅")

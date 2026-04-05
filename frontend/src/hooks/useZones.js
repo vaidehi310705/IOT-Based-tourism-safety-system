@@ -6,18 +6,18 @@ export default function useZones(setZones) {
   useEffect(() => {
     async function fetchZones() {
       try {
-        const res = await fetch(`${backendURL}/api/locations/zones`); // ✅ fixed URL
+        const res = await fetch(`${backendURL}/zones`);
         const data = await res.json();
-        // ✅ backend returns array directly, but safety check just in case
-        setZones(Array.isArray(data) ? data : Object.values(data));
+        setZones(data || []);
       } catch (err) {
-        console.error("Failed to fetch zones:", err);
+        console.error(err);
         setZones([]);
       }
     }
 
     fetchZones();
     const interval = setInterval(fetchZones, 5000);
+
     return () => clearInterval(interval);
   }, [setZones]);
 }

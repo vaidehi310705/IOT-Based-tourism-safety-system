@@ -1,174 +1,245 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from database.mongo import tourists_col, zones_col
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+import threading
+import time
+import os
 
 router = APIRouter()
 
+
+# ================= MODELS =================
+
+class StartTrackingModel(BaseModel):
+    device_id: str
+
+
 class LocationUpdate(BaseModel):
-    tourist_id: str
+    device_id: str
     lat: float
     lng: float
 
-@router.post("/update_location")
-def update_location(data: LocationUpdate):
-    tid = data.tourist_id
-    if tid == "ME":
-        mongo_id = "ME"
-    else:
-        mongo_id = f"REAL_{tid}"
+
+# ================= START TRACKING =================
+
+@router.post("/real-tourists/start-tracking")
+def start_tracking(data: StartTrackingModel):
+
+    mongo_id = f"REAL_{data.device_id}"
 
     tourists_col.update_one(
-        {"tourist_id": data.tourist_id},
-        {"$set": {"lat": data.lat, "lng": data.lng}},
+        {"tourist_id": mongo_id},
+        {
+            "$set": {
+                "tourist_id": mongo_id,
+                "name": "Live Tourist",
+                "lat": None,
+                "lng": None
+            }
+        },
         upsert=True
     )
-    return {"status": "success", "updated_id": data.tourist_id}
+
+    print("Tracking started:", mongo_id)
+
+    return {"status": "tracking_started"}
+
+
+# ================= UPDATE LOCATION =================
+
+@router.post("/real-tourists/update-location")
+def update_location(data: LocationUpdate):
+
+    mongo_id = f"REAL_{data.device_id}"
+
+    tourists_col.update_one(
+        {"tourist_id": mongo_id},
+        {
+            "$set": {
+                "lat": data.lat,
+                "lng": data.lng
+            }
+        },
+        upsert=True
+    )
+
+    print("Location updated:", mongo_id, data.lat, data.lng)
+
+    return {"status": "success"}
+
+
+# ================= GET LOCATIONS =================
 
 @router.get("/locations")
 def get_locations():
-    live_tourists = {}
-    for t in tourists_col.find():
-        tid = t.get("tourist_id")
-        if tid and "lat" in t and "lng" in t:
-            live_tourists[tid] = {
-                "lat": t["lat"],
-                "lng": t["lng"],
-                "name": t.get("name", "Unknown"),
-                "status": t.get("status", "active"),
-                "destination": t.get("destination", "")
+
+    output = {}
+
+    for tourist in tourists_col.find():
+
+        if tourist.get("lat") and tourist.get("lng"):
+
+            output[tourist["tourist_id"]] = {
+                "lat": tourist["lat"],
+                "lng": tourist["lng"]
             }
-    return live_tourists
+
+    return output
+
+
+# ================= GET ZONES =================
 
 @router.get("/zones")
 def get_zones():
-    return [
-        {
-            "name": z.get("name", ""),
-            "lat": z["lat"],
-            "lng": z["lng"],
-            "radius": z.get("radius", 100),
-            "risk": z.get("risk", "GREEN")
-        }
-        for z in zones_col.find()
-    ]
 
-@router.delete("/tourists/{tourist_id}")
-def delete_tourist(tourist_id: str):
-    result = tourists_col.delete_one({"tourist_id": tourist_id})
-    if result.deleted_count == 0:
-        return {"status": "fail", "message": "Tourist not found"}
-    return {"status": "success", "deleted_id": tourist_id}
+    return list(zones_col.find({}, {"_id": 0}))
 
-# ---------------- INITIAL SYNC (🔥 FIX) ----------------
+
+# ================= INITIAL DEMO DATA SYNC =================
+
 def initial_sync():
-    try:
-        import data.tourists as t_mod
-        import data.zones as z_mod
 
-        # --- TOURISTS ---
-        for tid, loc in t_mod.tourists.items():
+    try:
+
+        import data.tourists as tourists_mod
+        import data.zones as zones_mod
+
+        print("Syncing demo tourists...")
+
+        for tid, loc in tourists_mod.tourists.items():
+
             tourists_col.update_one(
                 {"tourist_id": tid},
-                {"$set": loc},
+                {
+                    "$set": {
+                        "tourist_id": tid,
+                        "name": loc.get("name", "Demo Tourist"),
+                        "lat": loc["lat"],
+                        "lng": loc["lng"]
+                    }
+                },
                 upsert=True
             )
 
-        # --- ZONES ---
-        for z in z_mod.zones:
+        print("Demo tourists synced")
+
+
+        print("Syncing zones...")
+
+        for zone in zones_mod.zones:
+
             zones_col.update_one(
-                {"name": z["name"]},
-                {"$set": z},
+                {"name": zone["name"]},
+                {"$set": zone},
                 upsert=True
             )
 
-        print("Initial sync done ✅")
+        print("Zones synced")
 
     except Exception as e:
+
         print("Initial sync error:", e)
 
 
-# ---------------- ZONE WATCHER ----------------
-class ZoneFileHandler(FileSystemEventHandler):
+# ================= FILE WATCHERS =================
+
+class ZoneWatcher(FileSystemEventHandler):
+
     def on_modified(self, event):
+
         if event.src_path.endswith("zones.py"):
+
             try:
+
                 import importlib
                 import data.zones as zones_mod
+
                 importlib.reload(zones_mod)
 
-                current = {z["name"]: z for z in zones_mod.zones}
-                db = {z["name"]: z for z in zones_col.find()}
+                for zone in zones_mod.zones:
 
-                # DELETE removed
-                for name in db:
-                    if name not in current:
-                        zones_col.delete_one({"name": name})
-
-                # UPSERT
-                for name, z in current.items():
                     zones_col.update_one(
-                        {"name": name},
-                        {"$set": z},
+                        {"name": zone["name"]},
+                        {"$set": zone},
                         upsert=True
                     )
 
-                print("Zones synced ✅")
+                print("Zones auto-updated")
 
             except Exception as e:
-                print("Zone sync error:", e)
+
+                print("Zone watcher error:", e)
 
 
-# ---------------- TOURIST WATCHER ----------------
-class TouristFileHandler(FileSystemEventHandler):
+class TouristWatcher(FileSystemEventHandler):
+
     def on_modified(self, event):
+
         if event.src_path.endswith("tourists.py"):
+
             try:
+
                 import importlib
-                import data.tourists as t_mod
-                importlib.reload(t_mod)
+                import data.tourists as tourists_mod
 
-                current = t_mod.tourists
-                db = {t["tourist_id"]: t for t in tourists_col.find()}
+                importlib.reload(tourists_mod)
 
-                # UPSERT
-                for tid, loc in current.items():
+                for tid, loc in tourists_mod.tourists.items():
+
                     tourists_col.update_one(
                         {"tourist_id": tid},
-                        {"$set": loc},
+                        {
+                            "$set": {
+                                "tourist_id": tid,
+                                "name": loc.get("name", "Demo Tourist"),
+                                "lat": loc["lat"],
+                                "lng": loc["lng"]
+                            }
+                        },
                         upsert=True
                     )
 
-                # DELETE ONLY demo
-                for tid in db:
-                    if tid != "ME" and not tid.startswith("REAL_") and tid not in current:
-                        tourists_col.delete_one({"tourist_id": tid})
-
-                print("Tourists synced ✅")
+                print("Tourists auto-updated")
 
             except Exception as e:
-                print("Tourist sync error:", e)
 
+                print("Tourist watcher error:", e)
+
+
+# ================= START WATCHERS =================
 
 def start_watchers():
+
     path = os.path.join(os.path.dirname(__file__), "../data")
 
     observer = Observer()
-    observer.schedule(ZoneFileHandler(), path, recursive=False)
-    observer.schedule(TouristFileHandler(), path, recursive=False)
+
+    observer.schedule(ZoneWatcher(), path, recursive=False)
+    observer.schedule(TouristWatcher(), path, recursive=False)
+
     observer.start()
 
-    print("Watchers started ✅")
+    print("Watchers running")
 
     try:
+
         while True:
             time.sleep(1)
+
     except KeyboardInterrupt:
+
         observer.stop()
 
     observer.join()
 
 
-# ---------------- START EVERYTHING ----------------
-initial_sync()  # 🔥 THIS FIXES YOUR ISSUE
+# ================= START BACKGROUND SERVICES =================
 
-threading.Thread(target=start_watchers, daemon=True).start()
+initial_sync()
+
+threading.Thread(
+    target=start_watchers,
+    daemon=True
+).start()

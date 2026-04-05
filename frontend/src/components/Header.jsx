@@ -1,7 +1,7 @@
 export default function Header() {
 
   return (
-    <div className="w-full text-center mb-10 ">
+    <div className="w-full text-center mb-10 mt-5 ">
       <h1 className="text-5xl font-bold text-blue-200 tracking-wide">
         Tourist Safety Monitoring System
       </h1>
