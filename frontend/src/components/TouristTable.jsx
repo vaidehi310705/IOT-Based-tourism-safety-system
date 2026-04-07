@@ -1,27 +1,14 @@
 import { useMemo } from "react";
-import useTourists from "../hooks/useTourists";
 
-export default function TouristTable() {
-  const tourists = useTourists();
-
+export default function TouristTable({ tourists }) {
   const cleaned = useMemo(() => {
     const obj = {};
-
     Object.keys(tourists || {}).forEach((id) => {
       const t = tourists[id];
       if (t && typeof t.lat === "number" && typeof t.lng === "number") {
         obj[id] = t;
       }
     });
-
-    const realKey = Object.keys(obj).find(
-      (id) => id === "ME" || id.startsWith("REAL_")
-    );
-
-    if (realKey && realKey !== "ME") {
-      obj["ME"] = obj[realKey];
-    }
-
     return obj;
   }, [tourists]);
 
@@ -30,7 +17,6 @@ export default function TouristTable() {
       <h3 className="text-xl font-semibold text-blue-200 mb-4">
         Tourist Locations
       </h3>
-
       <table className="w-full text-sm">
         <thead className="text-blue-300 border-b border-blue-700">
           <tr>
@@ -39,19 +25,31 @@ export default function TouristTable() {
             <th className="text-left p-2">Lng</th>
           </tr>
         </thead>
-
         <tbody>
-          {Object.keys(cleaned).map((id) => {
-            const t = cleaned[id];
-
-            return (
-              <tr key={id} className="border-b border-blue-800">
-                <td className="p-2">{id === "ME" ? "You" : id}</td>
-                <td className="p-2">{t.lat.toFixed(5)}</td>
-                <td className="p-2">{t.lng.toFixed(5)}</td>
-              </tr>
-            );
-          })}
+          {Object.keys(cleaned).length === 0 ? (
+            <tr>
+              <td colSpan={3} className="p-2 text-blue-400 text-center">
+                No tourists found
+              </td>
+            </tr>
+          ) : (
+            Object.keys(cleaned).map((id) => {
+              const t = cleaned[id];
+              const label =
+                id === "ME"
+                  ? "You (PC)"
+                  : id.startsWith("REAL_")
+                  ? "📱 " + id.replace("REAL_", "")
+                  : id;
+              return (
+                <tr key={id} className="border-b border-blue-800">
+                  <td className="p-2">{label}</td>
+                  <td className="p-2">{t.lat.toFixed(5)}</td>
+                  <td className="p-2">{t.lng.toFixed(5)}</td>
+                </tr>
+              );
+            })
+          )}
         </tbody>
       </table>
     </div>

@@ -1,24 +1,29 @@
 import { useEffect } from "react";
 
-const backendURL = "http://127.0.0.1:8000/real-tourists";
+const backendURL = "https://atresic-irving-steelless.ngrok-free.dev";
 
 export default function useRealTimeLocation(tourists, setTourists) {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const res = await fetch(`${backendURL}/locations`);
+        const res = await fetch(`${backendURL}/real-tourists/locations`, {
+          headers: {
+            "ngrok-skip-browser-warning": "true"
+            }
+        });
         const data = await res.json();
 
-        if (!Array.isArray(data)) return;
-
         const updated = {};
-        data.forEach((t) => {
-          updated[t.tourist_id] = {
+
+        Object.entries(data).forEach(([id, t]) => {
+          if (!t.lat == null|| !t.lng == null) return; // skip invalid/null data
+
+          updated[id] = {
             name: t.name,
             lat: t.lat,
             lng: t.lng,
-          };
-        });
+        };
+      });
 
         setTourists(updated);
       } catch (err) {

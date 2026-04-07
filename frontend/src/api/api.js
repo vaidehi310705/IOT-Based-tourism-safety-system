@@ -1,4 +1,4 @@
-const BASE_URL = "http://127.0.0.1:8000";
+const BASE_URL = "https://atresic-irving-steelless.ngrok-free.dev";
 
 export const getTourists = async () => {
   try {
@@ -33,6 +33,6 @@ export const getZones = async () => {
 if (!res.ok) throw new Error("API failed");
 
 export const getPriorityTourists = async () => {
-  const res = await fetch("http://127.0.0.1:8000/priority-tourists");
+  const res = await fetch("https://atresic-irving-steelless.ngrok-free.dev/priority-tourists");
   return res.json();
 };

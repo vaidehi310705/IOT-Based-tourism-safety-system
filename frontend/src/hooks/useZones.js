@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-const backendURL = "http://127.0.0.1:8000";
+const backendURL = "https://atresic-irving-steelless.ngrok-free.dev";
 
 export default function useZones(setZones) {
   useEffect(() => {

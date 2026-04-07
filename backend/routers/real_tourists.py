@@ -6,7 +6,6 @@ import uuid
 
 router = APIRouter()
 
-
 # -------------------------
 # MODELS
 # -------------------------
@@ -14,33 +13,33 @@ router = APIRouter()
 class TouristRegister(BaseModel):
     name: str
 
-
 class LocationUpdate(BaseModel):
     device_id: str
+    tourist_id: str = None  # ✅ optional, fixes 422
     lat: float
     lng: float
-
 
 class DeviceStart(BaseModel):
     device_id: str
 
-
 # -------------------------
-# ADMIN REGISTERS TOURIST
+# TOURIST SELF-REGISTERS
 # -------------------------
 
 @router.post("/register")
 async def register_tourist(data: TouristRegister):
 
-    device_id = "T" + uuid.uuid4().hex[:8]
+    # ✅ Use name as device_id so tourist can use same name to start tracking
+    device_id = data.name.strip().lower().replace(" ", "_")
 
     existing = tourists_col.find_one({"device_id": device_id})
 
     if existing:
-        raise HTTPException(
-            status_code=500,
-            detail="Device ID collision detected. Retry."
-        )
+        # ✅ Already registered, just return OK instead of erroring
+        return {
+            "device_id": device_id,
+            "status": "registered"
+        }
 
     tourists_col.insert_one({
         "tourist_id": device_id,
@@ -51,7 +50,6 @@ async def register_tourist(data: TouristRegister):
         "created_at": datetime.utcnow()
     })
 
-    # create tracking entry
     locations_col.update_one(
         {"device_id": device_id},
         {
@@ -70,7 +68,6 @@ async def register_tourist(data: TouristRegister):
         "status": "registered"
     }
 
-
 # -------------------------
 # TOURIST STARTS TRACKING
 # -------------------------
@@ -78,9 +75,7 @@ async def register_tourist(data: TouristRegister):
 @router.post("/start-tracking")
 async def start_tracking(data: DeviceStart):
 
-    tourist = tourists_col.find_one({
-        "device_id": data.device_id
-    })
+    tourist = tourists_col.find_one({"device_id": data.device_id})
 
     if not tourist:
         raise HTTPException(
@@ -88,21 +83,19 @@ async def start_tracking(data: DeviceStart):
             detail="Invalid device ID"
         )
 
-    return {
-        "message": "Tracking started successfully"
-    }
-
+    return {"message": "Tracking started successfully"}
 
 # -------------------------
 # TOURIST SENDS LOCATION
 # -------------------------
 
-@router.post("/update-location")
+@router.post("/update-location")  # ✅ fixed leading slash
 async def update_location(data: LocationUpdate):
 
-    # update locations collection
+    device_id = data.device_id
+
     locations_col.update_one(
-        {"device_id": data.device_id},
+        {"device_id": device_id},
         {
             "$set": {
                 "lat": data.lat,
@@ -113,9 +106,8 @@ async def update_location(data: LocationUpdate):
         upsert=True
     )
 
-    # update tourists collection also
     tourists_col.update_one(
-        {"device_id": data.device_id},
+        {"device_id": device_id},
         {
             "$set": {
                 "lat": data.lat,
@@ -124,14 +116,10 @@ async def update_location(data: LocationUpdate):
         }
     )
 
-    return {
-        "message": "Location updated successfully"
-    }
-
+    return {"message": "Location updated successfully"}
 
 # -------------------------
 # ADMIN FETCHES LIVE LOCATIONS
-# (THIS FIXES YOUR ISSUE)
 # -------------------------
 
 @router.get("/locations")
@@ -142,9 +130,7 @@ async def get_locations():
     result = {}
 
     for t in tourists:
-
         device_id = t.get("device_id")
-
         result[device_id] = {
             "name": t.get("name", "Demo Tourist"),
             "lat": t.get("lat"),

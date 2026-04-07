@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-const backendURL = "http://127.0.0.1:8000";
+const backendURL = "https://atresic-irving-steelless.ngrok-free.dev";
 
 export default function useLiveLocation(setTourists, setPaths) {
   useEffect(() => {
@@ -24,13 +24,14 @@ export default function useLiveLocation(setTourists, setPaths) {
           ME: [...(prev.ME || []), [latitude, longitude]]
         }));
 
-        fetch(`${backendURL}/update_location`, {
+        fetch(`${backendURL}/real-tourists/update-location`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             tourist_id: "ME",
             lat: latitude,
-            lng: longitude
+            lng: longitude,
+            device_id: "web-client"
           })
         }).catch(err => console.error(err));
       },

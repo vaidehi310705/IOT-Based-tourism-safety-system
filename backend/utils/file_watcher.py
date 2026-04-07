@@ -21,7 +21,7 @@ def sync_zones():
 def start_watching():
     event_handler = ZoneFileHandler()
     observer = Observer()
-    observer.schedule(event_handler, path="backend/data", recursive=False)
+    observer.schedule(event_handler, path="data", recursive=False)
     observer.start()
     print("Started watching zones.py for changes...")
     try:

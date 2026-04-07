@@ -1,118 +1,85 @@
 import { useState } from "react";
-import axios from "axios";
+
+const BACKEND_URL = "https://atresic-irving-steelless.ngrok-free.dev";
+
+const headers = {
+  "Content-Type": "application/json",
+  "ngrok-skip-browser-warning": "true"
+};
 
 export default function TouristTracking() {
-
   const [deviceId, setDeviceId] = useState("");
   const [tracking, setTracking] = useState(false);
 
-  // ✅ Add your backend URL here so both start-tracking and update-location use it
-  const BACKEND_URL = "http://192.168.0.105:8000"; // your laptop IP
-
   const startTracking = async () => {
-
     if (!deviceId.trim()) {
-      alert("Enter Device ID");
+      alert("Enter your name");
       return;
     }
 
+    const id = deviceId.trim().toLowerCase().replace(" ", "_");
+
     try {
+      await fetch(`${BACKEND_URL}/real-tourists/register`, {
+        method: "POST", headers,
+        body: JSON.stringify({ name: id })
+      });
 
-      // confirm device exists
-      await axios.post(
-        `${BACKEND_URL}/real-tourists/start-tracking`,
-        {
-          device_id: deviceId.trim()
-        }
-      );
-
-      alert("Tracking started successfully");
+      await fetch(`${BACKEND_URL}/real-tourists/start-tracking`, {
+        method: "POST", headers,
+        body: JSON.stringify({ device_id: id })
+      });
 
       setTracking(true);
 
-      // start GPS tracking AFTER validation
-      navigator.geolocation.watchPosition(
+      // ✅ Use getCurrentPosition in interval instead of watchPosition
+      const sendLocation = () => {
+        navigator.geolocation.getCurrentPosition(
+          async ({ coords }) => {
+            try {
+              await fetch(`${BACKEND_URL}/real-tourists/update-location`, {
+                method: "POST", headers,
+                body: JSON.stringify({
+                  device_id: id,
+                  tourist_id: id,
+                  lat: coords.latitude,
+                  lng: coords.longitude
+                })
+              });
+            } catch (err) {
+              console.error("Location update failed:", err);
+            }
+          },
+          (err) => console.error("GPS error:", err),
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+      };
 
-        async (position) => {
-
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-
-          console.log("Sending:", deviceId, lat, lng);
-
-          try {
-
-            await axios.post(
-              `${BACKEND_URL}/real-tourists/update-location`,
-              {
-                device_id: deviceId.trim(),
-                lat: lat,
-                lng: lng
-              }
-            );
-
-            console.log("Location sent successfully");
-
-          } catch (err) {
-
-            console.error("Location update failed:", err);
-
-          }
-
-        },
-
-        (error) => {
-
-          console.error("GPS error:", error);
-
-          alert("Enable location permission on your phone");
-
-        },
-
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        }
-      );
+      sendLocation(); // send immediately
+      setInterval(sendLocation, 5000); // then every 5 seconds
 
     } catch (err) {
-
       console.error(err);
-
-      alert("Invalid Device ID");
-
+      alert("Failed to start tracking. Try again.");
     }
   };
 
   return (
-
     <div style={{ padding: "40px" }}>
-
       <h2>Tourist Tracking</h2>
-
       {!tracking ? (
-
         <>
           <input
-            placeholder="Enter Device ID"
+            placeholder="Enter your name"
             value={deviceId}
             onChange={(e) => setDeviceId(e.target.value)}
           />
-
           <br /><br />
-
-          <button onClick={startTracking}>
-            Start Tracking
-          </button>
+          <button onClick={startTracking}>Start Tracking</button>
         </>
-
       ) : (
-
-        <h3>Tracking Active 📍</h3>
-
+        <h3>Tracking Active 📍 — {deviceId}</h3>
       )}
-
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import RegisterTourist from "../components/RegisterTourist";
 
@@ -9,46 +9,38 @@ import AlertsPanel from "../components/AlertsPanel";
 import MapView from "../components/MapView";
 import TouristTable from "../components/TouristTable";
 
-import useLiveLocation from "../hooks/useLiveLocation";
 import useZones from "../hooks/useZones";
 import useWeather from "../hooks/useWeather";
 import useAlerts from "../hooks/useAlerts";
 import useRealTimeLocation from "../hooks/useRealTimeLocation";
 
+
+
 import "react-toastify/dist/ReactToastify.css";
 import "leaflet/dist/leaflet.css";
 
-const backendURL = "http://127.0.0.1:8000";
+const backendURL = "https://atresic-irving-steelless.ngrok-free.dev";
 
 export default function AdminDashboard() {
-  const [tourists, setTourists] = useState({
-    T1: { lat: 19.34543, lng: 72.80580 },
-    T3: { lat: 18.75400, lng: 73.40630 },
-    T2: { lat: 18.75070, lng: 73.37760 },
-  });
+  const [tourists, setTourists] = useState({});
   const [zones, setZones] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [weather, setWeather] = useState(null);
   const [paths, setPaths] = useState({});
   const [alertMessages, setAlertMessages] = useState([]);
 
-  // ---- Real-time locations of all registered devices ----
   useRealTimeLocation(tourists, setTourists);
 
   const handleNewTourist = (tourist) => {
-    // Add tourist to state immediately
     setTourists((prev) => ({
       ...prev,
       [tourist.tourist_id]: { lat: tourist.lat, lng: tourist.lng },
     }));
 
-    // Register tourist in backend
     fetch(`${backendURL}/real-tourists/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-     body: JSON.stringify({
- name: tourist.name
-}),
+      body: JSON.stringify({ name: tourist.name }),
     })
       .then((res) => res.json())
       .then((data) => {
@@ -64,7 +56,7 @@ export default function AdminDashboard() {
       });
   };
 
-  useLiveLocation(setTourists, setPaths);
+  // ❌ useLiveLocation(setTourists, setPaths) removed
   useZones(setZones);
   useWeather(tourists, setWeather);
   useAlerts(setAlerts, setAlertMessages);
@@ -78,7 +70,6 @@ export default function AdminDashboard() {
     return 3;
   };
 
-  /*sorting*/
   const sortedTourists = useMemo(() => {
     if (!tourists || Object.keys(tourists).length === 0) return {};
     return Object.entries(tourists)
